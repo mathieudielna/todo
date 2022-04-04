@@ -15,15 +15,21 @@ form.addEventListener("submit", event => {
 
 const todos = [{
     text: "Déclaration d'imposition",
-    done: false
+    done: false,
+    editMode: false
 }, {
     text: "exposé GFE",
-    done: true
+    done: true,
+    editMode: true
 }];
 
 const displayTodo = () => {
     const todosNode = todos.map((todo, index) => {
-        return createTodoElement(todo, index);
+        if (todo.editMode) {
+            return createTodoEditElement(todo, index);
+        } else {
+            return createTodoElement(todo, index);
+        }
     });
     console.log(todosNode);
     ul.innerHTML = "";
@@ -33,9 +39,16 @@ const displayTodo = () => {
 const createTodoElement = (todo, index) => {
     const li = document.createElement("li");
     const buttonDelete = document.createElement("button");
-    buttonDelete.innerHTML = `<button>Supprimer</button>`;
+    buttonDelete.innerHTML = "Supprimer";
     buttonDelete.addEventListener("click", event => {
+        event.stopPropagation();
         deleteTodo(index);
+    });
+    const buttonModify = document.createElement("button");
+    buttonModify.innerHTML = "Modifier";
+    buttonModify.addEventListener("click", event => {
+        event.stopPropagation();
+        todoEdit(index);
     });
     li.innerHTML = `
     <span class="todo ${todo.done
@@ -46,7 +59,29 @@ const createTodoElement = (todo, index) => {
     li.addEventListener("click", event => {
         doneTodo(index);
     });
-    li.appendChild(buttonDelete);
+    li.append(buttonModify, buttonDelete);
+    return li;
+};
+
+const createTodoEditElement = (todo, index) => {
+    const li = document.createElement("li");
+    const input = document.createElement("input");
+    input.type = "text";
+    input.value = todo.text;
+    const buttonSave = document.createElement("button");
+    buttonSave.innerHTML = "Sauvegarder";
+    buttonSave.addEventListener("click", event => {
+        event.stopPropagation();
+        todoChange(input.value, index);
+        todoEdit(index);
+    });
+    const buttonCancel = document.createElement("button");
+    buttonCancel.innerHTML = "Annuler";
+    buttonCancel.addEventListener("click", event => {
+        event.stopPropagation();
+        todoEdit(index);
+    });
+    li.append(input, buttonCancel, buttonSave);
     return li;
 };
 
@@ -61,13 +96,18 @@ const deleteTodo = index => {
 };
 
 const doneTodo = index => {
-    if (todos[index].done === false) {
-        todos[index].done = true;
-        displayTodo();
-    } else {
-        todos[index].done = false;
-        displayTodo();
-    }
+    todos[index].done = !todos[index].done;
+    displayTodo();
+};
+
+const todoEdit = index => {
+    todos[index].editMode = !todos[index].editMode;
+    displayTodo();
+};
+
+const todoChange = (text, index) => {
+    todos[index].text = text;
+    displayTodo();
 };
 
 displayTodo();
